@@ -1,7 +1,6 @@
 package schedule
 
 import (
-	"log"
 	"sync"
 	"time"
 )
@@ -98,14 +97,10 @@ func (q *Queue) Daily(job func() error, clock Clock) {
 		for {
 			now := time.Now().UTC()
 			next := time.Date(now.Year(), now.Month(), now.Day(), clock.hour, clock.min, clock.sec, 0, time.UTC)
-			log.Println(now)
-			log.Println(next)
-
 			if next.Before(now) {
 				// Next has already occured, add a day
 				next = next.Add(24 * time.Hour)
 			}
-			log.Println(next)
 
 			// Wait for this next time to occur
 			<-TickAt(next)
