@@ -88,22 +88,13 @@ func (q *Queue) RepeatN(job func() error, freq time.Duration, n int) {
 }
 
 // Perform the task daily at the given time of day
-// TODO The clock needs a location
-// TODO Assumes UTC for now
 func (q *Queue) Daily(job func() error, clock Clock) {
 	q.unfinished.Add(1)
 	// TODO New goroutine for each iteration?
 	go func() {
 		for {
-			now := time.Now().UTC()
-			next := time.Date(now.Year(), now.Month(), now.Day(), clock.hour, clock.min, clock.sec, 0, time.UTC)
-			if next.Before(now) {
-				// Next has already occured, add a day
-				next = next.Add(24 * time.Hour)
-			}
-
 			// Wait for this next time to occur
-			<-TickAt(next)
+			<-TickAt(clock.Next())
 			s := Status{
 				Start: time.Now(),
 			}
