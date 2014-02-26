@@ -60,7 +60,7 @@ func (c Clock) TotalSeconds() int {
 // This operation does not make much sense
 func (c Clock) UTC() Clock {
 	c.loc = time.UTC
-	// TODO Adjust the clock
+	// TODO Adjust the clock?
 	return c
 }
 
@@ -107,12 +107,42 @@ func clockNowUTC(getNow func() time.Time) Clock {
 
 // TODO First attempt to parse a timezone
 // If no timezone is provided, assume the local timezone
+
+// TODO Replace with a single Must function?
+func MustParseClock(value string) Clock {
+	clock, err := parseClock(value, time.Local)
+	if err != nil {
+		panic(err)
+	}
+	return clock
+}
+
+func MustParseClockUTC(value string) Clock {
+	clock, err := parseClock(value, time.UTC)
+	if err != nil {
+		panic(err)
+	}
+	return clock
+}
+
+func MustParseClockInLocation(value string, loc *time.Location) Clock {
+	clock, err := parseClock(value, loc)
+	if err != nil {
+		panic(err)
+	}
+	return clock
+}
+
 func ParseClock(value string) (Clock, error) {
 	return parseClock(value, time.Local)
 }
 
 func ParseClockUTC(value string) (Clock, error) {
 	return parseClock(value, time.UTC)
+}
+
+func ParseClockInLocation(value string, loc *time.Location) (Clock, error) {
+	return parseClock(value, loc)
 }
 
 func parseClock(value string, loc *time.Location) (Clock, error) {
