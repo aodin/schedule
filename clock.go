@@ -71,10 +71,9 @@ func (c Clock) Next() time.Time {
 }
 
 func (c Clock) next(getNow func() time.Time) time.Time {
-	n := getNow()
+	n := getNow().In(c.loc)
 	year, month, day := n.Date()
-	hr, mm, ss := c.HMS()
-	nxt := time.Date(year, month, day, hr, mm, ss, 0, c.Location())
+	nxt := c.ToTime(year, month, day)
 	if nxt.Before(n) {
 		// If nxt has already occured, add a day
 		nxt = nxt.Add(24 * time.Hour)
@@ -88,21 +87,16 @@ func (c Clock) ToTime(y int, m time.Month, d int) time.Time {
 
 // TODO Interact with the runtime?
 func ClockNow() Clock {
-	return clockNow(now)
-}
-
-func clockNow(getNow func() time.Time) Clock {
-	hr, mm, ss := getNow().Clock()
-	return Clock{(hr*60+mm)*60 + ss, time.Local}
+	return clockNowIn(now, time.Local)
 }
 
 func ClockNowUTC() Clock {
-	return clockNowUTC(now)
+	return clockNowIn(now, time.UTC)
 }
 
-func clockNowUTC(getNow func() time.Time) Clock {
-	hr, mm, ss := getNow().UTC().Clock()
-	return Clock{(hr*60+mm)*60 + ss, time.Local}
+func clockNowIn(getNow func() time.Time, loc *time.Location) Clock {
+	hr, mm, ss := getNow().In(loc).Clock()
+	return Clock{(hr*60+mm)*60 + ss, loc}
 }
 
 // TODO First attempt to parse a timezone
@@ -125,7 +119,7 @@ func MustParseClockUTC(value string) Clock {
 	return clock
 }
 
-func MustParseClockInLocation(value string, loc *time.Location) Clock {
+func MustParseClockIn(value string, loc *time.Location) Clock {
 	clock, err := parseClock(value, loc)
 	if err != nil {
 		panic(err)
@@ -141,7 +135,7 @@ func ParseClockUTC(value string) (Clock, error) {
 	return parseClock(value, time.UTC)
 }
 
-func ParseClockInLocation(value string, loc *time.Location) (Clock, error) {
+func ParseClockIn(value string, loc *time.Location) (Clock, error) {
 	return parseClock(value, loc)
 }
 

@@ -7,7 +7,7 @@ import (
 
 // TODO A better place for testing functions?
 func expectClock(t *testing.T, clock Clock, hour, min, sec int) {
-	// TODO Or just compare the secs and the location
+	// TODO Or just compare the secs
 	h, m, s := clock.HMS()
 	if h != hour {
 		t.Errorf("Unexpected clock hours: %d != %d", h, hour)
@@ -18,7 +18,12 @@ func expectClock(t *testing.T, clock Clock, hour, min, sec int) {
 	if s != sec {
 		t.Errorf("Unexpected clock seconds: %d != %d", s, sec)
 	}
-	// TODO Test location as well
+}
+
+func expectLocation(t *testing.T, a, b *time.Location) {
+	if a != b {
+		t.Errorf("Unexpected location: %s != %s", a, b)
+	}
 }
 
 func expectTime(t *testing.T, a, b time.Time) {
@@ -38,11 +43,22 @@ func TestClock(t *testing.T) {
 	setNow := func() time.Time {
 		return time.Date(2014, time.Month(2), 14, 12, 12, 12, 0, time.Local)
 	}
-	cNow := clockNow(setNow)
-	expectClock(t, cNow, 12, 12, 12)
 
-	plusOne := cNow.Add(-time.Minute)
+	// Test that the UTC functions return UTC
+	cNowUTC := ClockNowUTC()
+	expectLocation(t, cNowUTC.loc, time.UTC)
+
+	cNow := ClockNow()
+	expectLocation(t, cNow.loc, time.Local)
+
+	// Test Local
+	clock := clockNowIn(setNow, time.Local)
+	expectClock(t, clock, 12, 12, 12)
+	expectLocation(t, clock.loc, time.Local)
+
+	plusOne := clock.Add(-time.Minute)
 	expectClock(t, plusOne, 12, 11, 12)
+	expectLocation(t, plusOne.loc, time.Local)
 
 	// Get the next occurence of the clock
 	fifteenth := plusOne.next(setNow)

@@ -6,7 +6,6 @@ import (
 )
 
 type Status struct {
-	OK    bool
 	Error error
 	Start time.Time
 	End   time.Time
@@ -15,7 +14,7 @@ type Status struct {
 func (s Status) String() string {
 	// TODO Are the casts needed?
 	elapsed := float64(s.End.Sub(s.Start).Nanoseconds()) / float64(time.Millisecond)
-	if s.OK {
+	if s.Error == nil {
 		return fmt.Sprintf("OK (%.3f ms)", elapsed)
 	}
 	return fmt.Sprintf("ERROR: %s (%.3f ms)", s.Error.Error(), elapsed)
