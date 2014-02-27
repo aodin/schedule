@@ -3,7 +3,7 @@ schedule
 
 Schedule jobs in Go using the `time` and `sync` packages.
 
-The job must be niladic function that returns an error.
+Jobs must be niladic functions that return an error.
 
 ```go
 func Heartbeat() error {
@@ -11,7 +11,7 @@ func Heartbeat() error {
 }
 ```
 
-More complex job can be built using methods.
+More complex jobs can be built using methods.
 
 ```go
 type Counter struct {
@@ -38,7 +38,7 @@ schedule.Daily(Heartbeat, threeAM)
 schedule.WaitForJobsToFinish()
 ```
 
-A job running forever can be stopped cleanly between iterations with `Quit`:
+To stop a job cleanly between iterations while it is running forever:
 
 ```go
 job := schedule.Repeat(c.Count, time.Second)
