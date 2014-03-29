@@ -6,8 +6,8 @@ import (
 
 // A job that can assert the number of times it has been run
 type testJob struct {
-	t     *testing.T
-	count int
+	t        *testing.T
+	count    int
 	expected int
 }
 
@@ -24,5 +24,5 @@ func (t *testJob) Increment() error {
 }
 
 func newTestJob(t *testing.T, n int) *testJob {
-	return &testJob{t, 0, n} 
+	return &testJob{t, 0, n}
 }

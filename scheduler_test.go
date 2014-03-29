@@ -27,7 +27,7 @@ func TestScheduler(t *testing.T) {
 	assertJob = newTestJob(t, 1)
 	j = Repeat(assertJob.Increment, time.Second)
 	go func() {
-		<- time.After(1 * time.Millisecond)
+		<-time.After(1 * time.Millisecond)
 		j.Quit()
 	}()
 	WaitForJobsToFinish()

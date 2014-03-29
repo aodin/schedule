@@ -9,7 +9,7 @@ type Job struct {
 	exec      func() error
 	quit      chan bool
 	tick      <-chan time.Time
-	setTick   func() <-chan time.Time
+	setter    func() <-chan time.Time
 	n         int
 	increment int
 	scheduler *Scheduler
@@ -37,8 +37,10 @@ func (j *Job) Run() {
 				// Send the status to the logger
 				j.scheduler.logger.Log(status)
 
-				// Reset the tick
-				j.tick = j.setTick()
+				// Reset the tick if a setter is present
+				if j.setter != nil {
+					j.tick = j.setter()
+				}
 			}
 		}
 

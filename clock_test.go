@@ -32,6 +32,12 @@ func expectTime(t *testing.T, a, b time.Time) {
 	}
 }
 
+func expectInt(t *testing.T, a, b int) {
+	if a != b {
+		t.Errorf("Unexpected integer: %d != %d", a, b)
+	}
+}
+
 func expectString(t *testing.T, a, b string) {
 	if a != b {
 		t.Errorf("Unexpected string: %s != %s", a, b)
@@ -78,4 +84,24 @@ func TestClock(t *testing.T) {
 		t.Fatal(err)
 	}
 	expectString(t, fives.String(), "5:05:05")
+}
+
+func TestClock_Before(t *testing.T) {
+	threePM := MustParseClock("15:00:00")
+	sixPM := MustParseClock("18:00:00")
+	if !threePM.Before(sixPM) {
+		t.Error("Three PM should be before six PM")
+	}
+	if threePM.Before(threePM) {
+		t.Error("Three PM should not be before itself")
+	}
+	if sixPM.Before(threePM) {
+		t.Error("Six PM should not be before three PM")
+	}
+
+	// Build a clock through addition
+	twoAM := sixPM.Add(8 * time.Hour)
+	if !twoAM.Before(sixPM) {
+		t.Error("Two AM should be before six PM")
+	}
 }

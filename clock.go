@@ -2,6 +2,7 @@ package schedule
 
 import (
 	"fmt"
+	"sort"
 	"time"
 )
 
@@ -28,6 +29,11 @@ func (c Clock) String() string {
 func (c Clock) Add(d time.Duration) Clock {
 	c.sec += int(d / 1e9)
 	return c
+}
+
+func (c Clock) Before(other Clock) bool {
+	// Clocks may have been built through addition, so mod by seconds in a day
+	return (c.sec % (60 * 60 * 24)) < (other.sec % (60 * 60 * 24))
 }
 
 func (c Clock) Location() *time.Location {
@@ -57,7 +63,7 @@ func (c Clock) TotalSeconds() int {
 	return c.sec
 }
 
-// This operation does not make much sense
+// TODO This operation does not make much sense
 func (c Clock) UTC() Clock {
 	c.loc = time.UTC
 	// TODO Adjust the clock?
@@ -67,11 +73,11 @@ func (c Clock) UTC() Clock {
 // Get the time that represents the next occurence of the clock
 // TODO Timezones matter!
 func (c Clock) Next() time.Time {
-	return c.next(now)
+	return c.next(defaultNow)
 }
 
-func (c Clock) next(getNow func() time.Time) time.Time {
-	n := getNow().In(c.loc)
+func (c Clock) next(now func() time.Time) time.Time {
+	n := now().In(c.loc)
 	year, month, day := n.Date()
 	nxt := c.ToTime(year, month, day)
 	if nxt.Before(n) {
@@ -85,17 +91,23 @@ func (c Clock) ToTime(y int, m time.Month, d int) time.Time {
 	return time.Date(y, m, d, c.Hour(), c.Minute(), c.Second(), 0, c.loc)
 }
 
+// Create a Clock from the given time.Time
+func ClockFromTime(t time.Time) Clock {
+	hr, mm, ss := t.Clock()
+	return Clock{(hr*60+mm)*60 + ss, t.Location()}
+}
+
 // TODO Interact with the runtime?
 func ClockNow() Clock {
-	return clockNowIn(now, time.Local)
+	return clockNowIn(defaultNow, time.Local)
 }
 
 func ClockNowUTC() Clock {
-	return clockNowIn(now, time.UTC)
+	return clockNowIn(defaultNow, time.UTC)
 }
 
-func clockNowIn(getNow func() time.Time, loc *time.Location) Clock {
-	hr, mm, ss := getNow().In(loc).Clock()
+func clockNowIn(now func() time.Time, loc *time.Location) Clock {
+	hr, mm, ss := now().In(loc).Clock()
 	return Clock{(hr*60+mm)*60 + ss, loc}
 }
 
@@ -147,4 +159,24 @@ func parseClock(value string, loc *time.Location) (Clock, error) {
 	}
 	hr, mm, ss := t.Clock()
 	return Clock{(hr*60+mm)*60 + ss, loc}, nil
+}
+
+// Implement the sort.Interface for clocks
+type Clocks []Clock
+
+func (c Clocks) Len() int {
+	return len(c)
+}
+
+func (c Clocks) Swap(i, j int) {
+	c[i], c[j] = c[j], c[i]
+}
+
+func (c Clocks) Less(i, j int) bool {
+	// Clocks may have been built through addition, so mod by seconds in a day
+	return (c[i].sec % (60 * 60 * 24)) < (c[j].sec % (60 * 60 * 24))
+}
+
+func SortClocks(clocks []Clock) {
+	sort.Sort(Clocks(clocks))
 }
