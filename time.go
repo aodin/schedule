@@ -4,15 +4,13 @@ import (
 	"time"
 )
 
-// Wrappers around time channels
-// If the time has already occured, the current time will be sent immediately
-// TODO Return the timer so that it can be stopped
-// The returned tick should be the scheduled time
+// TickAt is a wrappers for time channels. If the time has already occured,
+// the current time will be sent immediately
 func TickAt(t time.Time) <-chan time.Time {
 	return tickAt(defaultNow, t)
 }
 
-// Allow composition of the now() function for testing
+// defaultNow allows composition of the now() function for testing.
 func defaultNow() time.Time {
 	return time.Now()
 }

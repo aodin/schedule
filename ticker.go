@@ -5,7 +5,8 @@ import (
 	"time"
 )
 
-// Create a ticker that ticks on all the given days / clocks
+// Ticker ticks on all the given days / clocks. The easiest way to create a
+// ticker is with the functions DayClockTicker and DaysAndClocksTicker.
 // TODO daytimes instead of days and clocks?
 type Ticker struct {
 	C      chan time.Time
@@ -29,7 +30,7 @@ func (ticker *Ticker) currentClockIndex(clock Clock) int {
 	)
 }
 
-// Send the expected time (TODO not actual?)
+// Start the given Ticker.
 func (ticker *Ticker) Start() {
 	now := ticker.now().In(ticker.loc)
 
@@ -67,6 +68,9 @@ func (ticker *Ticker) Start() {
 					away = 7
 				}
 
+				// It is safe to add more days than there are in a month
+				// http://golang.org/src/pkg/time/time.go?s=19663:19722#L648
+				// TODO Use AddDate
 				nextTick := time.Date(
 					now.Year(),
 					now.Month(),
@@ -104,8 +108,8 @@ func uniqueDays(a []time.Weekday) []time.Weekday {
 	return unique
 }
 
-// Create a ticker that sends a channel tick at the time of day specified by
-// the clock and for every day in the days array.
+// DayClockTicker creates a new Ticker that ticks at the time of day specified
+// by the clock and for every day in the days array.
 func DayClockTicker(weekday time.Weekday, clock Clock) *Ticker {
 	// TODO Start the ticker immediately?
 	return &Ticker{
@@ -117,6 +121,8 @@ func DayClockTicker(weekday time.Weekday, clock Clock) *Ticker {
 	}
 }
 
+// DaysAndClocksTicker creates a new Ticker that will tick on all
+// combinations of the given weekdays and clocks.
 func DaysAndClocksTicker(weekdays []time.Weekday, clocks []Clock) *Ticker {
 	// Days and clocks may be given out of order, sort them
 	SortWeekdays(weekdays)
