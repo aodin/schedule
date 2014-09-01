@@ -48,3 +48,7 @@ go func() {
 }()
 schedule.WaitForJobsToFinish()
 ```
+
+For full API documentation visit the project's [GoDoc page](https://godoc.org/github.com/aodin/schedule).
+
+-aodin, 2014
